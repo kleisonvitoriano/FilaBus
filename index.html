@@ -47,6 +47,22 @@
         #toast.success { background-color: #22c55e; }
         #toast.error { background-color: #ef4444; }
         #toast.info { background-color: #3b82f6; }
+
+        #auth-overlay{
+          background-image: url("assets/Design\ sem\ nome.png");
+          background-size: cover;
+          background-position: center;
+          background-repeat: no-repeat;
+        }
+        @media (max-width: 640px) {
+          #auth-overlay{
+            background-image: url("assets/Design\ sem\ nome.png");
+            background-size: cover;
+            background-position: 40%;
+            background-repeat: no-repeat;
+          }
+          
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -139,7 +155,8 @@
                 </div>
             </div>
 
-            <div class="bg-violet-500 text-white p-6 rounded-3xl shadow-lg shadow-violet-500/30 flex justify-between items-center">
+            <div class="bg-violet-500 text-white p-6 rounded-3xl shadow-lg shadow-violet-500/30 flex flex-col">
+              <div class="flex w-full justify-between items-center">
                 <div>
                     <p class="text-violet-200 text-sm">Sua Posição</p>
                     <p id="user-position" class="text-5xl font-extrabold">-</p>
@@ -148,6 +165,10 @@
                     <p class="text-violet-200 text-sm">Total na Fila</p>
                     <p id="total-in-queue" class="text-3xl font-bold">0</p>
                 </div>
+              </div>
+              <div>
+                <p id="users-next" class="text-lg font-bold"></p>
+              </div>
             </div>
             
             <div id="chat-section" class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm">
@@ -395,8 +416,20 @@
                 btn.textContent = 'Guardar Alterações';
             }
         }
+        async function queueIsOpen() {
+            const settingsDoc = await getDoc(doc(db, "admin", "settings"));
+            const settings = settingsDoc.exists() ? settingsDoc.data() : null;
+            const now = new Date();
+            const openTime = new Date(settings?.queueOpenTime);
+            const closeTime = new Date(settings?.queueCloseTime);
+            return now >= openTime && now <= closeTime;
+        }
 
         async function joinOrLeaveQueue(isInQueue) {
+            if (!isInQueue && !await queueIsOpen()) {
+                showToast("A fila está fechada. Aguarde a abertura.", "error");
+                return;
+            }
             const userQueueRef = doc(db, "queue", currentUser.uid);
             const joinBtn = el('join-leave-btn');
 
@@ -551,6 +584,7 @@
             if (now < openTime) {
                 statusEl.textContent = `Fila fechada. Abrirá às ${formatTime(openTime)}.`;
                 card.className = "text-center p-4 rounded-2xl bg-sky-100 dark:bg-sky-900/50 text-sky-800 dark:text-sky-200";
+                joinBtn.style.visibility = 'visible';
             } else if (now >= openTime && now < closeTime) {
                 statusEl.textContent = `Fila aberta! Fecha às ${formatTime(closeTime)}.`;
                 card.className = "text-center p-4 rounded-2xl bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200";
@@ -576,13 +610,19 @@
             }
         }
 
-        function renderQueue(queue) {
+        async function renderQueue(queue) {
+            const isQueueOpen = await queueIsOpen();
             const joinBtn = el('join-leave-btn');
             const userIndex = queue.findIndex(p => p.uid === currentUser.uid);
             const isInQueue = userIndex !== -1;
 
             el('total-in-queue').textContent = queue.length;
             el('user-position').textContent = isInQueue ? userIndex + 1 : "-";
+            if(isInQueue){
+              el('users-next').textContent = userIndex > 0 ? "Você está atrás de :" + queue[userIndex - 1].name.split(" ")[0] : "Você é o primeiro da fila 🤨";
+            }else{
+                el('users-next').textContent = '-';
+            }
 
             if (!isInQueue && leaveConfirmationTimeout) {
                 clearTimeout(leaveConfirmationTimeout);
@@ -590,7 +630,8 @@
             }
 
             if (joinBtn.dataset.confirming !== 'true') {
-                 joinBtn.textContent = isInQueue ? "Sair da Fila" : "Entrar na Fila";
+                 joinBtn.textContent = isQueueOpen ? (isInQueue ? "Sair da Fila" : "Entrar na Fila") : "Fila Fechada";
+                 joinBtn.disabled = !isQueueOpen;
                  joinBtn.className = `w-full font-bold py-4 px-4 rounded-2xl transition-all ${isInQueue ? 'bg-red-500 text-white' : 'bg-slate-800 dark:bg-white text-white dark:text-black'}`;
             }
 
