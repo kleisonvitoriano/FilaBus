@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Fila Virtual (Online)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚌</text></svg>"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f1f5f9;
+        color: #0f172a;
+      }
+      .dark body {
+        background-color: #020617;
+        color: #f1f5f9;
+      }
+      .fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      ::-webkit-scrollbar {
+        width: 4px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+      }
+      .dark ::-webkit-scrollbar-thumb {
+        background: #475569;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      #toast {
+        position: fixed;
+        top: -100px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        color: white;
+        z-index: 100;
+        transition: top 0.4s ease-in-out;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+      #toast.show {
+        top: 20px;
+      }
+      #toast.success {
+        background-color: #22c55e;
+      }
+      #toast.error {
+        background-color: #ef4444;
+      }
+      #toast.info {
+        background-color: #3b82f6;
+      }
+    </style>
+  </head>
+  <body class="antialiased">
+    <div id="app-container" class="container mx-auto max-w-md pb-28">
+      <div id="toast"></div>
+
+      <div
+        id="loading-section"
+        class="flex items-center justify-center h-screen"
+      >
+        <div
+          class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"
+        ></div>
+      </div>
+
+      <div
+        id="auth-overlay"
+        class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 dark:bg-opacity-70 z-40 flex items-center justify-center p-4"
+      >
+        <div
+          id="auth-section"
+          class="w-full bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 fade-in"
+        >
+          <div
+            id="auth-tabs"
+            class="flex border-b border-slate-200 dark:border-slate-700"
+          >
+            <button
+              id="show-login-tab"
+              class="flex-1 pb-2 text-center font-semibold border-b-2 border-indigo-500 text-indigo-500"
+            >
+              Entrar
+            </button>
+            <button
+              id="show-register-tab"
+              class="flex-1 pb-2 text-center font-semibold text-slate-500 dark:text-slate-400"
+            >
+              Registar
+            </button>
+          </div>
+          <div id="login-form" class="">
+            <input
+              type="email"
+              id="loginEmail"
+              placeholder="E-mail"
+              class="mb-4 w-full bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-white border-transparent rounded-xl py-3 px-4"
+              autocomplete="email"
+            />
+            <input
+              type="password"
+              id="loginPassword"
+              placeholder="Palavra-passe"
+              class="mb-2 w-full bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-white border-transparent rounded-xl py-3 px-4"
+              autocomplete="current-password"
+            />
+            <div class="flex justify-between items-center mb-4 px-1">
+              <label
+                class="flex items-center text-sm text-slate-600 dark:text-slate-300"
+              >
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  class="rounded border-slate-300 text-indigo-500 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                />
+                <span class="ml-2">Manter-me conectado</span>
+              </label>
+              <button
+                id="forgot-password-link"
+                class="text-sm text-indigo-500 hover:underline"
+              >
+                Esqueceu a senha?
+              </button>
+            </div>
+            <button
+              id="login-btn"
+              class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl transition"
+            >
+              Entrar
+            </button>
+          </div>
+          <div id="register-form" class="hidden">
+            <input
+              type="email"
+              id="registerEmail"
+              placeholder="E-mail"
+              class="mb-4 w-full bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-white border-transparent rounded-xl py-3 px-4"
+              autocomplete="email"
+            />
+            <input
+              type="password"
+              id="registerPassword"
+              placeholder="Palavra-passe (mín. 6 caracteres)"
+              class="mb-4 w-full bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-white border-transparent rounded-xl py-3 px-4"
+              autocomplete="new-password"
+            />
+            <button
+              id="register-btn"
+              class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl transition"
+            >
+              Criar Conta
+            </button>
+          </div>
+          <div id="password-reset-form" class="hidden">
+            <h3
+              class="text-lg font-bold text-center text-slate-900 dark:text-white mb-2"
+            >
+              Recuperar Senha
+            </h3>
+            <p
+              class="text-sm text-center text-slate-600 dark:text-slate-400 mb-4"
+            >
+              Insira o seu e-mail para receber um link de redefinição.
+            </p>
+            <input
+              type="email"
+              id="resetEmail"
+              placeholder="E-mail de registo"
+              class="mb-4 w-full bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-white border-transparent rounded-xl py-3 px-4"
+              autocomplete="email"
+            />
+            <button
+              id="send-reset-email-btn"
+              class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl transition"
+            >
+              Enviar E-mail
+            </button>
+            <button
+              id="back-to-login-btn"
+              class="w-full text-center mt-3 text-sm text-slate-500 hover:underline"
+            >
+              Voltar para o Login
+            </button>
+          </div>
+          <p
+            id="auth-error"
+            class="text-red-500 text-center text-sm min-h-[20px]"
+          ></p>
+        </div>
+      </div>
+
+      <!-- Ecrã de Completar/Editar Perfil -->
+      <div
+        id="profile-overlay"
+        class="hidden fixed inset-0 bg-slate-100 dark:bg-slate-900 z-50 p-4 overflow-y-auto"
+      >
+        <div
+          id="profile-section"
+          class="w-full max-w-md mx-auto space-y-6 fade-in pt-10"
+        >
+          <div class="flex justify-between items-center">
+            <h2
+              id="profile-title"
+              class="text-2xl font-bold text-slate-900 dark:text-white"
+            ></h2>
+            <button
+              id="close-profile-btn"
+              class="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </div>
+
+          <input
+            type="text"
+            id="userName"
+            placeholder="Nome Completo"
+            class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 px-4"
+          />
+          <input
+            type="text"
+            id="userCourse"
+            placeholder="Curso"
+            class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 px-4"
+          />
+          <input
+            type="tel"
+            id="userPhone"
+            placeholder="Telemóvel (Opcional)"
+            class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 px-4"
+          />
+          <button
+            id="save-profile-btn"
+            class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl transition"
+          >
+            Guardar Alterações
+          </button>
+        </div>
+      </div>
+
+      <div id="main-content" class="hidden p-4 space-y-6 fade-in">
+        <header class="flex justify-between items-center">
+          <div>
+            <p class="text-slate-600 dark:text-slate-400">Olá,</p>
+            <h1
+              id="header-user-name"
+              class="text-2xl font-bold text-slate-900 dark:text-white"
+            >
+              Utilizador
+            </h1>
+          </div>
+          <div class="flex items-center gap-3">
+            <button
+              id="edit-profile-btn"
+              class="text-slate-500 hover:text-indigo-500"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                ></path>
+                <path
+                  d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                ></path>
+              </svg>
+            </button>
+            <img
+              id="header-user-avatar"
+              class="w-12 h-12 rounded-full object-cover"
+            />
+            <button id="logout-btn" class="text-slate-500 hover:text-red-500">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <div
+          id="admin-panel"
+          class="hidden bg-amber-100 dark:bg-amber-800/20 p-5 rounded-2xl space-y-3"
+        >
+          <h2
+            class="text-lg font-bold text-center text-amber-800 dark:text-amber-300"
+          >
+            Painel do Administrador
+          </h2>
+          <input
+            type="datetime-local"
+            id="queueOpenTime"
+            class="w-full bg-white/70 dark:bg-slate-700 rounded-lg p-2 text-sm text-slate-900 dark:text-white"
+          />
+          <input
+            type="datetime-local"
+            id="queueCloseTime"
+            class="w-full bg-white/70 dark:bg-slate-700 rounded-lg p-2 text-sm text-slate-900 dark:text-white"
+          />
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button
+              id="save-schedule-btn"
+              class="w-full bg-blue-500 text-white font-semibold py-2 px-3 rounded-lg text-sm"
+            >
+              Agendar Fila
+            </button>
+            <button
+              id="restart-queue-btn"
+              class="w-full bg-red-500 text-white font-semibold py-2 px-3 rounded-lg text-sm transition-colors"
+            >
+              Reiniciar Fila
+            </button>
+            <button
+              id="clear-chat-btn"
+              class="w-full bg-orange-500 text-white font-semibold py-2 px-3 rounded-lg text-sm transition-colors col-span-1 sm:col-span-2"
+            >
+              Limpar Chat
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="bg-violet-500 text-white p-6 rounded-3xl shadow-lg shadow-violet-500/30 flex justify-between items-center"
+        >
+          <div>
+            <p class="text-violet-200 text-sm">Sua Posição</p>
+            <p id="user-position" class="text-5xl font-extrabold">-</p>
+          </div>
+          <div class="text-right">
+            <p class="text-violet-200 text-sm">Total na Fila</p>
+            <p id="total-in-queue" class="text-3xl font-bold">0</p>
+          </div>
+        </div>
+
+        <div
+          id="chat-section"
+          class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm"
+        >
+          <h3
+            class="text-lg font-bold text-center text-slate-800 dark:text-white mb-3"
+          >
+            Chat da Fila
+          </h3>
+          <div
+            id="chat-messages"
+            class="h-64 overflow-y-auto space-y-4 p-2 bg-slate-100 dark:bg-slate-900/50 rounded-lg mb-3"
+          ></div>
+          <form id="chat-form" class="flex gap-2">
+            <input
+              type="text"
+              id="chat-input"
+              placeholder="Digite uma mensagem..."
+              class="flex-grow bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-white border-transparent rounded-lg py-2 px-3 text-sm"
+              autocomplete="off"
+            />
+            <button
+              type="submit"
+              id="send-chat-btn"
+              class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg text-sm"
+            >
+              Enviar
+            </button>
+          </form>
+        </div>
+
+        <div id="queue-status-card" class="text-center p-4 rounded-2xl">
+          <p id="queue-status-message" class="font-semibold"></p>
+        </div>
+
+        <div
+          id="observation-section"
+          class="hidden bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm space-y-3"
+        >
+          <label
+            for="userObservation"
+            class="block font-semibold text-slate-700 dark:text-slate-200"
+            >Adicionar ou editar observação:</label
+          >
+          <div class="flex gap-2">
+            <input
+              type="text"
+              id="userObservation"
+              placeholder="Ex: Estou em prova, chego em 10 min..."
+              class="flex-grow bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-white border-transparent rounded-lg py-2 px-3 text-sm"
+            />
+            <button
+              id="save-observation-btn"
+              class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-3 rounded-lg text-sm"
+            >
+              Guardar
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-4">
+            Ordem da Fila
+          </h3>
+          <div id="queue-list" class="space-y-3"></div>
+        </div>
+
+        <footer
+          class="text-center text-xs text-slate-500 dark:text-slate-400 pt-8"
+        >
+          <p>Desenvolvido por Kleison Vitoriano da Silva</p>
+        </footer>
+      </div>
+
+      <div
+        id="bottom-bar"
+        class="hidden fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-t border-slate-200 dark:border-slate-800"
+      >
+        <div class="container mx-auto max-w-md">
+          <button
+            id="join-leave-btn"
+            class="w-full font-bold py-4 px-4 rounded-2xl transition-all duration-300"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import {
+        getAuth,
+        createUserWithEmailAndPassword,
+        signInWithEmailAndPassword,
+        signOut,
+        onAuthStateChanged,
+        setPersistence,
+        browserLocalPersistence,
+        browserSessionPersistence,
+        sendPasswordResetEmail,
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+        getDoc,
+        updateDoc,
+        deleteDoc,
+        collection,
+        onSnapshot,
+        query,
+        writeBatch,
+        addDoc,
+        serverTimestamp,
+        getDocs,
+        orderBy,
+        limit,
+      } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      // --- Configuração Firebase e Variáveis Globais ---
+      const firebaseConfig = {
+        apiKey: "AIzaSyDRf7ZciyvbJkX-P5cfWkzfI2Uw11Lxy0Q",
+        authDomain: "filaonibus.firebaseapp.com",
+        projectId: "filaonibus",
+        storageBucket: "filaonibus.appspot.com",
+        messagingSenderId: "93496874568",
+        appId: "1:93496874568:web:52b127aa7d70dc8471aa7d",
+        measurementId: "G-JRVSB40BDJ",
+      };
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      const el = (id) => document.getElementById(id);
+      const loadingSection = el("loading-section"),
+        authOverlay = el("auth-overlay"),
+        profileOverlay = el("profile-overlay"),
+        mainContent = el("main-content"),
+        bottomBar = el("bottom-bar");
+
+      let currentUser = null;
+      let userProfile = null;
+      const ADMIN_USER_ID = "twqMzdcSPVT31cuQJKsE8HKxQBH3";
+      let unsubscribeQueue, unsubscribeSettings, unsubscribeChat;
+
+      function cleanupRealtimeListeners() {
+        if (unsubscribeQueue) unsubscribeQueue();
+        if (unsubscribeSettings) unsubscribeSettings();
+        if (unsubscribeChat) unsubscribeChat();
+      }
+
+      function showToast(message, type = "info") {
+        const toast = el("toast");
+        toast.textContent = message;
+        toast.className = `show ${type}`;
+        setTimeout(() => {
+          toast.className = toast.className.replace("show", "");
+        }, 3000);
+      }
+
+      function showUIScreen(screen) {
+        authOverlay.style.display = "none";
+        profileOverlay.style.display = "none";
+        mainContent.classList.add("hidden");
+        bottomBar.classList.add("hidden");
+        if (screen === "auth") authOverlay.style.display = "flex";
+        else if (screen === "profile") profileOverlay.style.display = "block";
+        else if (screen === "main") {
+          mainContent.classList.remove("hidden");
+          bottomBar.classList.remove("hidden");
+        }
+      }
+
+      onAuthStateChanged(auth, async (user) => {
+        cleanupRealtimeListeners();
+        try {
+          currentUser = user;
+          if (user) {
+            const userDocRef = doc(db, "users", user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            userProfile = userDocSnap.exists()
+              ? { uid: user.uid, ...userDocSnap.data() }
+              : null;
+            if (userProfile && userProfile.name) {
+              showUIScreen("main");
+              setupRealtimeListeners();
+            } else {
+              openProfileScreen(true); // Abre para completar o perfil
+            }
+          } else {
+            userProfile = null;
+            showUIScreen("auth");
+          }
+        } catch (error) {
+          console.error("Erro na verificação de autenticação:", error);
+          showToast("Erro ao verificar a sua sessão.", "error");
+          showUIScreen("auth");
+        } finally {
+          loadingSection.style.display = "none";
+        }
+      });
+
+      async function handleLogin() {
+        const btn = el("login-btn");
+        btn.disabled = true;
+        btn.textContent = "A entrar...";
+        el("auth-error").textContent = "";
+        try {
+          const persistence = el("rememberMe").checked
+            ? browserLocalPersistence
+            : browserSessionPersistence;
+          await setPersistence(auth, persistence);
+          await signInWithEmailAndPassword(
+            auth,
+            el("loginEmail").value,
+            el("loginPassword").value
+          );
+        } catch (error) {
+          el("auth-error").textContent = "E-mail ou palavra-passe inválidos.";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Entrar";
+        }
+      }
+
+      async function handleRegister() {
+        const btn = el("register-btn");
+        btn.disabled = true;
+        btn.textContent = "A criar...";
+        el("auth-error").textContent = "";
+        try {
+          await createUserWithEmailAndPassword(
+            auth,
+            el("registerEmail").value,
+            el("registerPassword").value
+          );
+        } catch (error) {
+          el("auth-error").textContent =
+            "Ocorreu um erro ao registar. Verifique os dados.";
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Criar Conta";
+        }
+      }
+
+      async function handlePasswordReset() {
+        const btn = el("send-reset-email-btn");
+        const email = el("resetEmail").value;
+        const errorP = el("auth-error");
+        if (!email) {
+          errorP.textContent = "Por favor, insira o seu e-mail.";
+          return;
+        }
+        btn.disabled = true;
+        btn.textContent = "A enviar...";
+        errorP.textContent = "";
+        try {
+          await sendPasswordResetEmail(auth, email);
+          errorP.classList.remove("text-red-500");
+          errorP.classList.add("text-green-500");
+          errorP.textContent =
+            "E-mail enviado! Verifique a sua caixa de entrada e spam.";
+        } catch (error) {
+          errorP.classList.add("text-red-500");
+          errorP.classList.remove("text-green-500");
+          if (error.code === "auth/user-not-found") {
+            errorP.textContent =
+              "Nenhum utilizador encontrado com este e-mail.";
+          } else {
+            errorP.textContent = "Ocorreu um erro. Tente novamente.";
+          }
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Enviar E-mail";
+        }
+      }
+
+      // --- Lógica do Perfil ---
+      function openProfileScreen(isInitialSetup = false) {
+        el("profile-title").textContent = isInitialSetup
+          ? "Complete o seu Perfil"
+          : "Editar Perfil";
+        el("close-profile-btn").style.display = isInitialSetup
+          ? "none"
+          : "block";
+
+        el("userName").value = userProfile?.name || "";
+        el("userCourse").value = userProfile?.course || "";
+        el("userPhone").value = userProfile?.phone || "";
+        showUIScreen("profile");
+      }
+
+      async function handleSaveProfile() {
+        const btn = el("save-profile-btn");
+        btn.disabled = true;
+        btn.textContent = "A guardar...";
+
+        const userName = el("userName").value.trim();
+        const userCourse = el("userCourse").value.trim();
+
+        if (!userName || !userCourse) {
+          showToast("Nome e curso são obrigatórios.", "error");
+          btn.disabled = false;
+          btn.textContent = "Guardar Alterações";
+          return;
+        }
+
+        try {
+          const initial = userName.charAt(0).toUpperCase();
+          const color = [
+            "fca5a5",
+            "fdba74",
+            "86efac",
+            "67e8f9",
+            "a5b4fc",
+            "f0abfc",
+          ][Math.floor(Math.random() * 6)];
+          const photoUrl = `https://placehold.co/96x96/${color}/1e293b?text=${initial}&font=inter`;
+
+          const profileData = {
+            name: userName,
+            course: userCourse,
+            phone: el("userPhone").value.trim(),
+            photoUrl: photoUrl,
+          };
+
+          await setDoc(doc(db, "users", currentUser.uid), profileData);
+
+          const userQueueRef = doc(db, "queue", currentUser.uid);
+          const userInQueueSnap = await getDoc(userQueueRef);
+          if (userInQueueSnap.exists()) {
+            await updateDoc(userQueueRef, {
+              name: profileData.name,
+              course: profileData.course,
+              photoUrl: profileData.photoUrl,
+            });
+          }
+
+          userProfile = { ...userProfile, ...profileData };
+
+          showToast("Perfil guardado com sucesso!", "success");
+          showUIScreen("main");
+          renderHeaderAndAdmin();
+        } catch (error) {
+          console.error("Erro ao guardar perfil:", error);
+          showToast("Não foi possível guardar o perfil.", "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Guardar Alterações";
+        }
+      }
+
+      async function joinOrLeaveQueue(isInQueue) {
+        const userQueueRef = doc(db, "queue", currentUser.uid);
+        if (isInQueue) {
+          await deleteDoc(userQueueRef);
+        } else {
+          await setDoc(userQueueRef, {
+            ...userProfile,
+            timestamp: new Date(),
+            observation: "",
+          });
+        }
+      }
+
+      async function saveObservation() {
+        const btn = el("save-observation-btn");
+        btn.disabled = true;
+        btn.textContent = "A guardar...";
+        try {
+          await updateDoc(doc(db, "queue", currentUser.uid), {
+            observation: el("userObservation").value.trim(),
+          });
+          showToast("Observação guardada.", "success");
+        } catch (e) {
+          showToast("Não foi possível guardar.", "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Guardar";
+        }
+      }
+
+      async function handleSendMessage(e) {
+        e.preventDefault();
+        const input = el("chat-input");
+        if (input.value.trim()) {
+          await addDoc(collection(db, "chat"), {
+            text: input.value.trim(),
+            userName: userProfile.name,
+            userPhotoUrl: userProfile.photoUrl,
+            uid: currentUser.uid,
+            timestamp: serverTimestamp(),
+          });
+          input.value = "";
+        }
+      }
+
+      function renderChat(messages) {
+        const chatEl = el("chat-messages");
+        chatEl.innerHTML = messages
+          .map((msg) => {
+            const isMe = msg.uid === currentUser.uid;
+            const time = msg.timestamp
+              ? msg.timestamp
+                  .toDate()
+                  .toLocaleTimeString("pt-BR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+              : "";
+            return `
+                    <div class="flex items-start gap-2.5 ${
+                      isMe ? "justify-end" : ""
+                    }">
+                        <img class="w-8 h-8 rounded-full object-cover ${
+                          isMe ? "order-2" : "order-1"
+                        }" src="${msg.userPhotoUrl}" alt="${msg.userName}">
+                        <div class="flex flex-col gap-1 ${
+                          isMe ? "order-1 items-end" : "order-2 items-start"
+                        }">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs font-semibold text-slate-900 dark:text-white">${
+                                  isMe ? "Você" : msg.userName.split(" ")[0]
+                                }</span>
+                                <span class="text-xs font-normal text-slate-500 dark:text-slate-400">${time}</span>
+                            </div>
+                            <div class="leading-snug p-3 rounded-xl ${
+                              isMe
+                                ? "bg-indigo-500 text-white rounded-br-none"
+                                : "bg-slate-200 dark:bg-slate-700 rounded-bl-none"
+                            }">
+                                <p class="text-sm font-normal">${msg.text}</p>
+                            </div>
+                        </div>
+                    </div>`;
+          })
+          .join("");
+        chatEl.scrollTop = chatEl.scrollHeight;
+      }
+
+      // --- Funções de Administrador ---
+      async function adminAction(actionFn, successMsg) {
+        try {
+          await actionFn();
+          showToast(successMsg, "info");
+        } catch (error) {
+          console.error(`Erro de admin: ${successMsg}`, error);
+          showToast("Ocorreu um erro.", "error");
+        }
+      }
+
+      // --- Listeners e Renderização ---
+      function setupRealtimeListeners() {
+        if (!currentUser) return;
+
+        const handleFirestoreError = (error, context) => {
+          console.error(`Erro no listener do Firestore (${context}):`, error);
+          if (error.code === "permission-denied") {
+            showToast(
+              `Erro de permissão (${context}). Verifique as regras de segurança.`,
+              "error"
+            );
+          } else {
+            showToast(
+              `Não foi possível carregar dados de ${context}.`,
+              "error"
+            );
+          }
+        };
+
+        unsubscribeQueue = onSnapshot(
+          query(collection(db, "queue"), orderBy("timestamp")),
+          (snapshot) => renderQueue(snapshot.docs.map((d) => d.data())),
+          (error) => handleFirestoreError(error, "fila")
+        );
+        unsubscribeSettings = onSnapshot(
+          doc(db, "admin", "settings"),
+          (doc) => updateQueueStatusUI(doc.exists() ? doc.data() : null),
+          (error) => handleFirestoreError(error, "configurações")
+        );
+
+        const chatQuery = query(
+          collection(db, "chat"),
+          orderBy("timestamp", "desc"),
+          limit(50)
+        );
+        unsubscribeChat = onSnapshot(
+          chatQuery,
+          (snapshot) => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const messages = snapshot.docs.map((d) => d.data()).reverse();
+            renderChat(
+              messages.filter(
+                (msg) => msg.timestamp && msg.timestamp.toDate() >= today
+              )
+            );
+          },
+          (error) => handleFirestoreError(error, "chat")
+        );
+
+        renderHeaderAndAdmin();
+      }
+
+      function renderHeaderAndAdmin() {
+        el("header-user-name").textContent = userProfile.name.split(" ")[0];
+        el("header-user-avatar").src = userProfile.photoUrl;
+        el("admin-panel").style.display =
+          currentUser?.uid === ADMIN_USER_ID ? "block" : "none";
+      }
+
+      function updateQueueStatusUI(settings) {
+        const card = el("queue-status-card"),
+          statusEl = el("queue-status-message"),
+          joinBtn = el("join-leave-btn");
+        joinBtn.style.visibility = "hidden";
+        if (!settings?.queueOpenTime || !settings?.queueCloseTime) {
+          statusEl.textContent = "A fila ainda não foi agendada.";
+          card.className =
+            "text-center p-4 rounded-2xl bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300";
+          return;
+        }
+        const now = new Date(),
+          openTime = new Date(settings.queueOpenTime),
+          closeTime = new Date(settings.queueCloseTime);
+        const formatTime = (date) =>
+          date.toLocaleTimeString("pt-BR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        if (now < openTime)
+          statusEl.textContent = `Fila fechada. Abrirá às ${formatTime(
+            openTime
+          )}.`;
+        else if (now > closeTime)
+          statusEl.textContent = "A fila já foi encerrada.";
+        else {
+          statusEl.textContent = `Fila aberta! Fecha às ${formatTime(
+            closeTime
+          )}.`;
+          joinBtn.style.visibility = "visible";
+        }
+      }
+
+      function renderQueue(queue) {
+        el("total-in-queue").textContent = queue.length;
+        const userIndex = queue.findIndex((p) => p.uid === currentUser.uid);
+        el("user-position").textContent =
+          userIndex !== -1 ? userIndex + 1 : "-";
+
+        el("queue-list").innerHTML =
+          queue.length === 0
+            ? `<div class="text-center text-slate-500 py-8">A fila está vazia.</div>`
+            : queue
+                .map((p, i) => {
+                  const isMe = p.uid === currentUser.uid;
+                  const border = isMe
+                    ? "border-4 border-violet-500"
+                    : "border-4 border-transparent";
+                  const obsHTML = p.observation
+                    ? `<p class="text-xs text-slate-500 mt-1 italic">💬 "${p.observation}"</p>`
+                    : "";
+                  return `<div class="bg-white dark:bg-slate-800 p-3 rounded-2xl flex items-center gap-4 shadow-sm ${border}">
+                        <div class="bg-slate-200 dark:bg-slate-700 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg flex-shrink-0">${
+                          i + 1
+                        }</div>
+                        <img src="${
+                          p.photoUrl
+                        }" class="w-12 h-12 rounded-full object-cover flex-shrink-0">
+                        <div class="flex-grow min-w-0">
+                            <p class="font-semibold truncate">${p.name}</p>
+                            <p class="text-sm text-slate-500">${p.course}</p>
+                            ${obsHTML}
+                        </div>
+                    </div>`;
+                })
+                .join("");
+
+        const joinBtn = el("join-leave-btn"),
+          isInQueue = userIndex !== -1;
+        el("observation-section").style.display = isInQueue ? "block" : "none";
+        if (isInQueue)
+          el("userObservation").value = queue[userIndex]?.observation || "";
+        joinBtn.textContent = isInQueue ? "Sair da Fila" : "Entrar na Fila";
+        joinBtn.className = `w-full font-bold py-4 px-4 rounded-2xl transition-all ${
+          isInQueue
+            ? "bg-red-500 text-white"
+            : "bg-slate-800 dark:bg-white text-white dark:text-black"
+        }`;
+        joinBtn.onclick = () => joinOrLeaveQueue(isInQueue);
+      }
+
+      function setupEventListeners() {
+        el("login-btn").addEventListener("click", handleLogin);
+        el("register-btn").addEventListener("click", handleRegister);
+        el("send-reset-email-btn").addEventListener(
+          "click",
+          handlePasswordReset
+        );
+        el("logout-btn").addEventListener("click", () => signOut(auth));
+        el("save-schedule-btn").addEventListener("click", () =>
+          adminAction(
+            () =>
+              setDoc(doc(db, "admin", "settings"), {
+                queueOpenTime: el("queueOpenTime").value,
+                queueCloseTime: el("queueCloseTime").value,
+              }),
+            "Agendamento guardado!"
+          )
+        );
+        el("save-observation-btn").addEventListener("click", saveObservation);
+        el("chat-form").addEventListener("submit", handleSendMessage);
+        el("edit-profile-btn").addEventListener("click", () =>
+          openProfileScreen(false)
+        );
+        el("close-profile-btn").addEventListener("click", () =>
+          showUIScreen("main")
+        );
+        el("save-profile-btn").addEventListener("click", handleSaveProfile);
+
+        const addConfirmation = (buttonId, actionFn, successMsg) => {
+          const btn = el(buttonId);
+          let timeout;
+          const originalText = btn.textContent,
+            originalClasses = btn.className;
+          const confirmText = "Tem certeza?",
+            confirmClasses = originalClasses.replace(
+              /bg-(red|orange)-500/,
+              "bg-yellow-500"
+            );
+
+          btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            if (btn.dataset.confirming) {
+              clearTimeout(timeout);
+              adminAction(actionFn, successMsg);
+              delete btn.dataset.confirming;
+              btn.textContent = originalText;
+              btn.className = originalClasses;
+            } else {
+              btn.dataset.confirming = true;
+              btn.textContent = confirmText;
+              btn.className = confirmClasses;
+              timeout = setTimeout(() => {
+                delete btn.dataset.confirming;
+                btn.textContent = originalText;
+                btn.className = originalClasses;
+              }, 4000);
+            }
+          });
+        };
+        addConfirmation(
+          "restart-queue-btn",
+          async () => {
+            const snapshot = await getDocs(query(collection(db, "queue")));
+            const batch = writeBatch(db);
+            snapshot.docs.forEach((d) => batch.delete(d.ref));
+            await batch.commit();
+          },
+          "Fila reiniciada."
+        );
+        addConfirmation(
+          "clear-chat-btn",
+          async () => {
+            const snapshot = await getDocs(query(collection(db, "chat")));
+            const batch = writeBatch(db);
+            snapshot.docs.forEach((d) => batch.delete(d.ref));
+            await batch.commit();
+          },
+          "Chat limpo."
+        );
+
+        // Tabs de Autenticação
+        const showLoginTab = el("show-login-tab"),
+          showRegisterTab = el("show-register-tab");
+        const loginForm = el("login-form"),
+          registerForm = el("register-form"),
+          resetForm = el("password-reset-form"),
+          authTabs = el("auth-tabs");
+        showLoginTab.addEventListener("click", () => {
+          loginForm.classList.remove("hidden");
+          registerForm.classList.add("hidden");
+          showLoginTab.className =
+            "flex-1 pb-2 text-center font-semibold border-b-2 border-indigo-500 text-indigo-500";
+          showRegisterTab.className =
+            "flex-1 pb-2 text-center font-semibold text-slate-500 dark:text-slate-400";
+        });
+        showRegisterTab.addEventListener("click", () => {
+          registerForm.classList.remove("hidden");
+          loginForm.classList.add("hidden");
+          showRegisterTab.className =
+            "flex-1 pb-2 text-center font-semibold border-b-2 border-indigo-500 text-indigo-500";
+          showLoginTab.className =
+            "flex-1 pb-2 text-center font-semibold text-slate-500 dark:text-slate-400";
+        });
+        el("forgot-password-link").addEventListener("click", () => {
+          loginForm.classList.add("hidden");
+          registerForm.classList.add("hidden");
+          authTabs.classList.add("hidden");
+          resetForm.classList.remove("hidden");
+          el("auth-error").textContent = "";
+        });
+        el("back-to-login-btn").addEventListener("click", () => {
+          resetForm.classList.add("hidden");
+          loginForm.classList.remove("hidden");
+          authTabs.classList.remove("hidden");
+          el("auth-error").textContent = "";
+        });
+      }
+
+      if (window.matchMedia?.("(prefers-color-scheme: dark)").matches)
+        document.documentElement.classList.add("dark");
+      window
+        .matchMedia?.("(prefers-color-scheme: dark)")
+        .addEventListener("change", (e) =>
+          document.documentElement.classList.toggle("dark", e.matches)
+        );
+      setupEventListeners();
+    </script>
+  </body>
+</html>
