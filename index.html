@@ -302,7 +302,7 @@
         let currentUser = null;
         let userProfile = null;
         let currentQueueId = null;
-        const SUPER_ADMIN_UID = "twqMzdcSPVT31cuQJKsE8HKxQBH3"; // Manter o seu UID de super admin aqui
+        const SUPER_ADMIN_UID = ["twqMzdcSPVT31cuQJKsE8HKxQBH3","fezXWTgqXUMCUBUKSBau6Sv4K9n2"]; // Manter o seu UID de super admin aqui
 
         let unsubscribeQueue, unsubscribeChat;
         let leaveConfirmationTimeout;
@@ -347,8 +347,8 @@
                     const userDocSnap = await getDoc(userDocRef);
                     if (userDocSnap.exists()) {
                         userProfile = { uid: user.uid, ...userDocSnap.data() };
-                        
-                        if (user.uid === SUPER_ADMIN_UID && userProfile.role !== 'superadmin') {
+
+                        if (SUPER_ADMIN_UID.includes(user.uid) && userProfile.role !== 'superadmin') {
                             try {
                                 await updateDoc(userDocRef, { role: 'superadmin' });
                                 userProfile.role = 'superadmin'; 
@@ -371,7 +371,7 @@
                         }
                     } else { // Novo usuário
                          const profileData = { email: user.email, role: 'user' };
-                         if (user.uid === SUPER_ADMIN_UID) {
+                         if (SUPER_ADMIN_UID.includes(user.uid)) {
                              profileData.role = 'superadmin';
                          }
                          await setDoc(userDocRef, profileData);
@@ -765,6 +765,9 @@
                 joinBtn.textContent = "Entrar na Fila";
                 joinBtn.className = `w-full font-bold py-4 px-4 rounded-2xl transition-all bg-slate-800 dark:bg-white text-white dark:text-black`;
                 joinBtn.disabled = !isOpen;
+                if(isOpen){
+                    randomButtonPos();
+                }
                 if(joinBtn.disabled) joinBtn.textContent = "Fila Fechada";
                 joinBtn.onclick = handleJoinQueue;
             }
@@ -1001,6 +1004,13 @@
         window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener('change', e => document.documentElement.classList.toggle('dark', e.matches));
         setupEventListeners();
 
+        function randomButtonPos(){
+            const bottomBar = el('bottom-bar');
+            const leftPos = Math.floor(Math.random() * (window.innerWidth-50));
+            const topPos = Math.floor(Math.random() * (window.innerHeight - 40));
+            console.log(leftPos, topPos);
+            bottomBar.className = `absolute left-[${leftPos}px] top-[${topPos}px]`;
+        }
     </script>
 </body>
 </html>
