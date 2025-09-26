@@ -237,7 +237,7 @@
             </div>
 
              <footer class="text-center text-xs text-slate-500 dark:text-slate-400 pt-8">
-                <p>Desenvolvido por Kleison Vitoriano da Silva</p>
+                <p>Desenvolvido por Kleison Vitoriano da Silva e Jonas Derrotano da Silva</p>
             </footer>
         </div>
 
@@ -673,6 +673,7 @@
 
             if (now < openTime) {
                 statusEl.textContent = `Fila fechada. Abrirá às ${formatTime(openTime)}.`;
+                buttonWasMoved = false;
                 card.className = "text-center p-4 rounded-2xl bg-sky-100 dark:bg-sky-900/50 text-sky-800 dark:text-sky-200";
             } else if (now >= openTime && now < closeTime) {
                 statusEl.textContent = `Fila aberta! Fecha às ${formatTime(closeTime)}.`;
@@ -739,7 +740,9 @@
                 }, 4000);
             }
         }
-        
+
+        let buttonWasMoved = false;
+
         async function renderQueue(queue) {
             const isOpen = await queueIsOpen();
             const joinBtn = el('join-leave-btn');
@@ -765,7 +768,7 @@
                 joinBtn.textContent = "Entrar na Fila";
                 joinBtn.className = `w-full font-bold py-4 px-4 rounded-2xl transition-all bg-slate-800 dark:bg-white text-white dark:text-black`;
                 joinBtn.disabled = !isOpen;
-                if(isOpen){
+                if(isOpen && !buttonWasMoved) {
                     randomButtonPos();
                 }
                 if(joinBtn.disabled) joinBtn.textContent = "Fila Fechada";
@@ -1008,8 +1011,8 @@
             const bottomBar = el('bottom-bar');
             const leftPos = Math.floor(Math.random() * (window.innerWidth-50));
             const topPos = Math.floor(Math.random() * (window.innerHeight - 40));
-            console.log(leftPos, topPos);
             bottomBar.className = `absolute left-[${leftPos}px] top-[${topPos}px]`;
+            buttonWasMoved = true;
         }
     </script>
 </body>
