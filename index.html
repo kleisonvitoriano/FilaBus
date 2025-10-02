@@ -6,29 +6,130 @@
     <title>Fila Virtual (Online)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="icon" href="assets/Design sem nome.png">
+    <link rel="icon" href="https://placehold.co/32x32/818cf8/ffffff?text=Q&font=inter">
     <style>
         body { 
             font-family: 'Inter', sans-serif; 
             background-color: #f1f5f9;
             color: #0f172a;
+            transition: background-color 0.5s ease;
+            overflow-x: hidden; /* Prevent horizontal scroll from blobs */
         }
         .dark body { 
             background-color: #020617;
             color: #f1f5f9;
         }
-        .fade-in { animation: fadeIn 0.5s ease-in-out; }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+
+        /* --- Animated Background & Blobs --- */
+        .blob-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            z-index: -1;
+            transition: opacity 0.5s ease;
+            opacity: 0;
         }
+        .dark .blob-container {
+            opacity: 1;
+        }
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            will-change: transform;
+        }
+        .blob-1 {
+            width: 350px;
+            height: 350px;
+            background: #818cf8; /* Indigo */
+            top: -50px;
+            left: -100px;
+            animation: float 20s infinite alternate;
+        }
+        .blob-2 {
+            width: 300px;
+            height: 300px;
+            background: #f472b6; /* Pink */
+            bottom: -50px;
+            right: -100px;
+            animation: float 25s infinite alternate;
+            animation-delay: -5s;
+        }
+         .blob-3 {
+            width: 250px;
+            height: 250px;
+            background: #38bdf8; /* Sky Blue */
+            bottom: 20%;
+            left: 10%;
+            animation: float 30s infinite alternate;
+            animation-delay: -10s;
+        }
+        @keyframes float {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(100px, 50px) scale(1.2); }
+        }
+
+
+        /* --- Animations --- */
+        .fade-in-up { animation: fadeInUp 0.7s cubic-bezier(0.390, 0.575, 0.565, 1.000) both; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(25px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Staggered animation for list items */
+        #queue-list > *, #queues-list > * {
+           animation: fadeInUp 0.5s ease-out both;
+        }
+        #queue-list > *:nth-child(1), #queues-list > *:nth-child(1) { animation-delay: 0.1s; }
+        #queue-list > *:nth-child(2), #queues-list > *:nth-child(2) { animation-delay: 0.15s; }
+        #queue-list > *:nth-child(3), #queues-list > *:nth-child(3) { animation-delay: 0.2s; }
+        #queue-list > *:nth-child(4), #queues-list > *:nth-child(4) { animation-delay: 0.25s; }
+        #queue-list > *:nth-child(5), #queues-list > *:nth-child(5) { animation-delay: 0.3s; }
+
+        /* --- Transitions --- */
+        button, a, .cursor-pointer, input {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        button:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.02);
+            filter: brightness(1.1);
+        }
+        button:active:not(:disabled) {
+            transform: translateY(-1px) scale(0.99);
+        }
+
+        /* --- Glassmorphism Effect --- */
+        .glass-effect {
+            background-color: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+        }
+        .dark .glass-effect {
+            background-color: rgba(30, 41, 59, 0.5);
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(2, 6, 23, 0.3);
+        }
+
+        /* --- Component Styling --- */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .dark ::-webkit-scrollbar-thumb { background: #475569; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; filter: none !important; }
+
+        input:focus {
+             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4);
+             border-color: rgba(99, 102, 241, 0.7) !important;
+        }
 
         #toast {
             position: fixed;
@@ -40,43 +141,45 @@
             font-weight: 600;
             color: white;
             z-index: 1000;
-            transition: top 0.4s ease-in-out;
+            transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s ease;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         #toast.show { top: 20px; }
-        #toast.success { background-color: #22c55e; }
-        #toast.error { background-color: #ef4444; }
-        #toast.info { background-color: #3b82f6; }
+        #toast.success { background: linear-gradient(to right, #22c55e, #16a34a); }
+        #toast.error { background: linear-gradient(to right, #ef4444, #dc2626); }
+        #toast.info { background: linear-gradient(to right, #3b82f6, #2563eb); }
 
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background-color: rgba(10, 10, 20, 0.7);
-            backdrop-filter: blur(4px);
+            background-color: rgba(10, 10, 20, 0.5);
+            backdrop-filter: blur(8px);
             z-index: 500;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 1rem;
+            animation: fadeInOverlay 0.4s ease;
+        }
+        
+        #close-logs-modal {
+            font-size: 2rem;
+            line-height: 1;
+            font-weight: bold;
         }
 
-         #auth-overlay{
-          background-image: url("assets/Design\ sem\ nome.png");
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
+        @keyframes fadeInOverlay {
+            from { opacity: 0; } to { opacity: 1; }
         }
-        @media (max-width: 640px) {
-          #auth-overlay{
-            background-image: url("assets/Design\ sem\ nome.png");
-            background-size: cover;
-            background-position: 40%;
-            background-repeat: no-repeat;
-          }
 
     </style>
 </head>
 <body class="antialiased">
+    <div class="blob-container">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
     <div id="app-container" class="container mx-auto max-w-md pb-28">
         
         <div id="toast"></div>
@@ -86,15 +189,15 @@
         </div>
 
         <!-- Ecrã de Autenticação (Login/Registo) -->
-        <div id="auth-overlay" class="hidden fixed inset-0 bg-slate-100 dark:bg-slate-900 z-40 flex items-center justify-center p-4 ">
-            <div id="auth-section" class="w-full bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-2xl space-y-4 fade-in">
-                <div id="auth-tabs" class="flex border-b border-slate-200 dark:border-slate-700">
+        <div id="auth-overlay" class="hidden fixed inset-0 z-40 flex items-center justify-center p-4 ">
+            <div id="auth-section" class="w-full glass-effect rounded-3xl p-6 shadow-2xl space-y-4 fade-in-up">
+                <div id="auth-tabs" class="flex border-b border-slate-200/50 dark:border-slate-700/50">
                     <button id="show-login-tab" class="flex-1 pb-2 text-center font-semibold border-b-2 border-indigo-500 text-indigo-500">Entrar</button>
                     <button id="show-register-tab" class="flex-1 pb-2 text-center font-semibold text-slate-500 dark:text-slate-400">Registar</button>
                 </div>
                 <div id="login-form" class="">
-                    <input type="email" id="loginEmail" placeholder="E-mail" class="mb-4 w-full bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-white border-transparent rounded-xl py-3 px-4" autocomplete="email">
-                    <input type="password" id="loginPassword" placeholder="Palavra-passe" class="mb-2 w-full bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-white border-transparent rounded-xl py-3 px-4" autocomplete="current-password">
+                    <input type="email" id="loginEmail" placeholder="E-mail" class="mb-4 w-full bg-slate-100/50 text-slate-900 dark:bg-slate-700/50 dark:text-white border-transparent rounded-xl py-3 px-4" autocomplete="email">
+                    <input type="password" id="loginPassword" placeholder="Palavra-passe" class="mb-2 w-full bg-slate-100/50 text-slate-900 dark:bg-slate-700/50 dark:text-white border-transparent rounded-xl py-3 px-4" autocomplete="current-password">
                     <div class="flex justify-between items-center mb-4 px-1">
                         <label class="flex items-center text-sm text-slate-600 dark:text-slate-300">
                             <input type="checkbox" id="rememberMe" class="rounded border-slate-300 text-indigo-500 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
@@ -102,19 +205,19 @@
                         </label>
                         <button id="forgot-password-link" class="text-sm text-indigo-500 hover:underline">Esqueceu a senha?</button>
                     </div>
-                    <button id="login-btn" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl transition">Entrar</button>
+                    <button id="login-btn" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl">Entrar</button>
                 </div>
                 <div id="register-form" class="hidden">
-                    <input type="email" id="registerEmail" placeholder="E-mail" class="mb-4 w-full bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-white border-transparent rounded-xl py-3 px-4" autocomplete="email">
-                    <input type="password" id="registerPassword" placeholder="Palavra-passe (mín. 6 caracteres)" class="mb-4 w-full bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-white border-transparent rounded-xl py-3 px-4" autocomplete="new-password">
-                    <input type="password" id="registerPasswordConfirm" placeholder="Confirmar Palavra-passe" class="mb-4 w-full bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-white border-transparent rounded-xl py-3 px-4" autocomplete="new-password">
-                    <button id="register-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl transition">Criar Conta</button>
+                    <input type="email" id="registerEmail" placeholder="E-mail" class="mb-4 w-full bg-slate-100/50 text-slate-900 dark:bg-slate-700/50 dark:text-white border-transparent rounded-xl py-3 px-4" autocomplete="email">
+                    <input type="password" id="registerPassword" placeholder="Palavra-passe (mín. 6 caracteres)" class="mb-4 w-full bg-slate-100/50 text-slate-900 dark:bg-slate-700/50 dark:text-white border-transparent rounded-xl py-3 px-4" autocomplete="new-password">
+                    <input type="password" id="registerPasswordConfirm" placeholder="Confirmar Palavra-passe" class="mb-4 w-full bg-slate-100/50 text-slate-900 dark:bg-slate-700/50 dark:text-white border-transparent rounded-xl py-3 px-4" autocomplete="new-password">
+                    <button id="register-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-xl">Criar Conta</button>
                 </div>
                  <div id="password-reset-form" class="hidden">
                     <h3 class="text-lg font-bold text-center text-slate-900 dark:text-white mb-2">Recuperar Senha</h3>
                     <p class="text-sm text-center text-slate-600 dark:text-slate-400 mb-4">Insira o seu e-mail para receber um link de redefinição.</p>
-                    <input type="email" id="resetEmail" placeholder="E-mail de registo" class="mb-4 w-full bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-white border-transparent rounded-xl py-3 px-4" autocomplete="email">
-                    <button id="send-reset-email-btn" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl transition">Enviar E-mail</button>
+                    <input type="email" id="resetEmail" placeholder="E-mail de registo" class="mb-4 w-full bg-slate-100/50 text-slate-900 dark:bg-slate-700/50 dark:text-white border-transparent rounded-xl py-3 px-4" autocomplete="email">
+                    <button id="send-reset-email-btn" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl">Enviar E-mail</button>
                      <button id="back-to-login-btn" class="w-full text-center mt-3 text-sm text-slate-500 hover:underline">Voltar para o Login</button>
                 </div>
                 <p id="auth-error" class="text-red-500 text-center text-sm min-h-[20px]"></p>
@@ -122,8 +225,9 @@
         </div>
 
         <!-- Ecrã de Completar/Editar Perfil -->
-        <div id="profile-overlay" class="hidden fixed inset-0 bg-slate-100 dark:bg-slate-900 z-50 p-4 overflow-y-auto">
-            <div class="w-full max-w-md mx-auto space-y-6 fade-in pt-10">
+        <div id="profile-overlay" class="hidden fixed inset-0 z-50 p-4 overflow-y-auto">
+            <div class="w-full max-w-md mx-auto space-y-6 fade-in-up pt-10">
+                <div class="absolute inset-0 bg-slate-100 dark:bg-slate-900 -z-10"></div>
                 <div class="flex justify-between items-center">
                     <h2 id="profile-title" class="text-2xl font-bold text-slate-900 dark:text-white"></h2>
                     <button id="close-profile-btn" class="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
@@ -135,26 +239,26 @@
                     <img id="profile-pic-preview" class="w-32 h-32 rounded-full object-cover border-4 border-slate-200 dark:border-slate-700">
                 </div>
 
-                <input type="text" id="userName" placeholder="Nome Completo" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 px-4">
-                <input type="text" id="userCourse" placeholder="Curso" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 px-4">
-                <input type="tel" id="userPhone" placeholder="Telemóvel (Opcional)" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 px-4">
-                <button id="save-profile-btn" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl transition">Guardar Alterações</button>
+                <input type="text" id="userName" placeholder="Nome Completo" class="w-full bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 px-4">
+                <input type="text" id="userCourse" placeholder="Curso" class="w-full bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 px-4">
+                <input type="tel" id="userPhone" placeholder="Telemóvel (Opcional)" class="w-full bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 px-4">
+                <button id="save-profile-btn" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl">Guardar Alterações</button>
             </div>
         </div>
         
         <!-- Ecrã de Seleção de Fila -->
-        <div id="queue-selection-screen" class="hidden p-4 space-y-6 fade-in">
+        <div id="queue-selection-screen" class="hidden p-4 space-y-6 fade-in-up">
             <h1 class="text-3xl font-bold text-center mt-8">Filas Disponíveis</h1>
             <div id="queues-list" class="space-y-3"></div>
             <div class="space-y-3 pt-4">
-                <button id="join-new-queue-btn" class="w-full bg-slate-700 hover:bg-slate-800 dark:bg-slate-200 dark:hover:bg-slate-300 text-white dark:text-slate-900 font-bold py-3 px-4 rounded-xl transition">Entrar numa Fila por Código</button>
-                <button id="create-new-queue-btn" class="hidden w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl transition">Criar Nova Fila</button>
+                <button id="join-new-queue-btn" class="w-full bg-slate-700 hover:bg-slate-800 dark:bg-slate-200 dark:hover:bg-slate-300 text-white dark:text-slate-900 font-bold py-3 px-4 rounded-xl">Entrar numa Fila por Código</button>
+                <button id="create-new-queue-btn" class="hidden w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl">Criar Nova Fila</button>
                 <button id="main-logout-btn" class="w-full text-center mt-3 text-sm text-red-500 hover:underline">Sair da Conta</button>
             </div>
         </div>
 
         <!-- Ecrã Principal da Fila -->
-        <div id="main-content" class="hidden p-4 space-y-6 fade-in">
+        <div id="main-content" class="hidden p-4 space-y-6 fade-in-up">
             <header class="flex justify-between items-center">
                 <div>
                      <button id="back-to-selection-btn" class="flex items-center gap-1 text-sm text-slate-500 hover:text-indigo-500 mb-1">
@@ -168,33 +272,34 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                     </button>
                     <img id="header-user-avatar" class="w-12 h-12 rounded-full object-cover">
-                    <button id="header-leave-queue-btn" class="hidden bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl transition-all text-sm">Sair</button>
+                    <button id="header-leave-queue-btn" class="hidden bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl text-sm">Sair</button>
                 </div>
             </header>
 
-            <div id="super-admin-panel" class="hidden bg-amber-100 dark:bg-amber-800/20 p-5 rounded-2xl space-y-3">
+            <div id="super-admin-panel" class="hidden glass-effect bg-amber-400/20 p-5 rounded-2xl space-y-3">
                 <h2 class="text-lg font-bold text-center text-amber-800 dark:text-amber-300">Painel Super Admin</h2>
                  <p class="text-xs text-center text-amber-700 dark:text-amber-400 -mt-2">Código da Fila: <strong id="queue-code-display"></strong></p>
                 <div class="grid grid-cols-2 gap-2 items-center">
                      <label for="queueOpenTime" class="text-sm font-medium">Abre às:</label>
-                     <input type="time" id="queueOpenTime" class="w-full bg-white/70 dark:bg-slate-700 rounded-lg p-2 text-sm text-slate-900 dark:text-white">
+                     <input type="time" id="queueOpenTime" class="w-full bg-white/70 dark:bg-slate-700/80 rounded-lg p-2 text-sm text-slate-900 dark:text-white">
                      <label for="queueCloseTime" class="text-sm font-medium">Fecha às:</label>
-                     <input type="time" id="queueCloseTime" class="w-full bg-white/70 dark:bg-slate-700 rounded-lg p-2 text-sm text-slate-900 dark:text-white">
+                     <input type="time" id="queueCloseTime" class="w-full bg-white/70 dark:bg-slate-700/80 rounded-lg p-2 text-sm text-slate-900 dark:text-white">
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
                     <button id="save-schedule-btn" class="w-full bg-blue-500 text-white font-semibold py-2 px-3 rounded-lg text-sm">Agendar Fila</button>
-                    <button id="restart-queue-btn" class="w-full bg-red-500 text-white font-semibold py-2 px-3 rounded-lg text-sm transition-colors">Reiniciar Fila</button>
-                    <button id="clear-chat-btn" class="w-full bg-orange-500 text-white font-semibold py-2 px-3 rounded-lg text-sm transition-colors col-span-1 sm:col-span-2">Limpar Chat</button>
+                    <button id="restart-queue-btn" class="w-full bg-red-500 text-white font-semibold py-2 px-3 rounded-lg text-sm">Reiniciar Fila</button>
+                    <button id="clear-chat-btn" class="w-full bg-orange-500 text-white font-semibold py-2 px-3 rounded-lg text-sm">Limpar Chat</button>
+                    <button id="view-logs-btn" class="w-full bg-slate-500 text-white font-semibold py-2 px-3 rounded-lg text-sm sm:col-span-2">Ver Histórico</button>
                 </div>
             </div>
             
-            <div id="driver-panel" class="hidden bg-cyan-100 dark:bg-cyan-800/20 p-5 rounded-2xl space-y-3">
+            <div id="driver-panel" class="hidden glass-effect bg-cyan-400/20 p-5 rounded-2xl space-y-3">
                 <h2 class="text-lg font-bold text-center text-cyan-800 dark:text-cyan-300">Painel do Motorista</h2>
                 <button id="share-location-btn" class="w-full bg-cyan-500 text-white font-semibold py-2 px-3 rounded-lg text-sm">Compartilhar Localização</button>
             </div>
 
 
-            <div class="bg-violet-500 text-white p-6 rounded-3xl shadow-lg shadow-violet-500/30 flex flex-col">
+            <div class="bg-gradient-to-br from-violet-500 to-indigo-600 text-white p-6 rounded-3xl shadow-lg shadow-violet-500/30 flex flex-col">
               <div class="flex w-full justify-between items-center">
                 <div>
                     <p class="text-violet-200 text-sm">Sua Posição</p>
@@ -206,27 +311,27 @@
                 </div>
               </div>
               <div>
-                <p id="users-next" class="text-lg font-bold"></p>
+                <p id="users-next" class="text-lg font-bold mt-2"></p>
               </div>
             </div>
             
-            <div id="chat-section" class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm">
+            <div id="chat-section" class="glass-effect p-4 rounded-2xl shadow-sm">
                 <h3 class="text-lg font-bold text-center text-slate-800 dark:text-white mb-3">Chat da Fila</h3>
-                <div id="chat-messages" class="h-64 overflow-y-auto space-y-4 p-2 bg-slate-100 dark:bg-slate-900/50 rounded-lg mb-3"></div>
+                <div id="chat-messages" class="h-64 overflow-y-auto space-y-4 p-2 bg-slate-100/50 dark:bg-slate-900/50 rounded-lg mb-3"></div>
                 <form id="chat-form" class="flex gap-2">
-                    <input type="text" id="chat-input" placeholder="Digite uma mensagem..." class="flex-grow bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-white border-transparent rounded-lg py-2 px-3 text-sm" autocomplete="off">
+                    <input type="text" id="chat-input" placeholder="Digite uma mensagem..." class="flex-grow bg-slate-100/50 text-slate-900 dark:bg-slate-700/70 dark:text-white border-transparent rounded-lg py-2 px-3 text-sm" autocomplete="off">
                     <button type="submit" id="send-chat-btn" class="bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg text-sm">Enviar</button>
                 </form>
             </div>
 
-            <div id="queue-status-card" class="text-center p-4 rounded-2xl">
+            <div id="queue-status-card" class="text-center p-4 rounded-2xl transition-all duration-500">
                 <p id="queue-status-message" class="font-semibold"></p>
             </div>
 
-            <div id="observation-section" class="hidden bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm space-y-3">
+            <div id="observation-section" class="hidden glass-effect p-5 rounded-2xl shadow-sm space-y-3">
                 <label for="userObservation" class="block font-semibold text-slate-700 dark:text-slate-200">Adicionar ou editar observação:</label>
                 <div class="flex gap-2">
-                    <input type="text" id="userObservation" placeholder="Ex: Estou em prova, chego em 10 min..." class="flex-grow bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-white border-transparent rounded-lg py-2 px-3 text-sm">
+                    <input type="text" id="userObservation" placeholder="Ex: Estou em prova, chego em 10 min..." class="flex-grow bg-slate-100/50 text-slate-900 dark:bg-slate-700/70 dark:text-white border-transparent rounded-lg py-2 px-3 text-sm">
                     <button id="save-observation-btn" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-3 rounded-lg text-sm">Guardar</button>
                 </div>
             </div>
@@ -241,31 +346,44 @@
             </footer>
         </div>
 
-        <div id="bottom-bar" class="hidden fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-t border-slate-200 dark:border-slate-800 z-30">
-             <div class="max-w-md mx-auto">
-                <button id="join-leave-btn" class="w-full font-bold py-4 px-4 rounded-2xl transition-all duration-300"></button>
+        <div id="bottom-bar" class="hidden fixed bottom-0 left-0 right-0 p-4 z-30">
+             <div class="max-w-md mx-auto flex justify-center">
+                 <button id="join-leave-btn" class="font-bold py-3 px-6 rounded-2xl duration-300"></button>
             </div>
         </div>
     </div>
     
     <!-- Modals -->
     <div id="join-queue-modal" class="hidden modal-overlay">
-        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl w-full max-w-sm space-y-4 fade-in">
+        <div class="glass-effect p-6 rounded-2xl w-full max-w-sm space-y-4 fade-in-up">
             <h3 class="text-lg font-bold text-center">Entrar em uma Fila</h3>
-            <input type="text" id="queue-code-input" placeholder="Insira o código da fila" class="w-full text-center tracking-widest font-mono uppercase bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-white border-transparent rounded-xl py-3 px-4">
+            <input type="text" id="queue-code-input" placeholder="Insira o código da fila" class="w-full text-center tracking-widest font-mono uppercase bg-slate-100/50 text-slate-900 dark:bg-slate-700/70 dark:text-white border-transparent rounded-xl py-3 px-4">
             <div class="grid grid-cols-2 gap-2">
-                <button id="cancel-join-queue" class="w-full bg-slate-200 dark:bg-slate-600 font-semibold py-2 px-3 rounded-lg">Cancelar</button>
+                <button id="cancel-join-queue" class="w-full bg-slate-200/80 dark:bg-slate-600/80 font-semibold py-2 px-3 rounded-lg">Cancelar</button>
                 <button id="confirm-join-queue" class="w-full bg-indigo-500 text-white font-semibold py-2 px-3 rounded-lg">Entrar</button>
             </div>
         </div>
     </div>
     <div id="create-queue-modal" class="hidden modal-overlay">
-        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl w-full max-w-sm space-y-4 fade-in">
+        <div class="glass-effect p-6 rounded-2xl w-full max-w-sm space-y-4 fade-in-up">
             <h3 class="text-lg font-bold text-center">Criar Nova Fila</h3>
-            <input type="text" id="queue-name-input" placeholder="Nome da nova fila" class="w-full bg-slate-100 text-slate-900 dark:bg-slate-700 dark:text-white border-transparent rounded-xl py-3 px-4">
+            <input type="text" id="queue-name-input" placeholder="Nome da nova fila" class="w-full bg-slate-100/50 text-slate-900 dark:bg-slate-700/70 dark:text-white border-transparent rounded-xl py-3 px-4">
             <div class="grid grid-cols-2 gap-2">
-                <button id="cancel-create-queue" class="w-full bg-slate-200 dark:bg-slate-600 font-semibold py-2 px-3 rounded-lg">Cancelar</button>
+                <button id="cancel-create-queue" class="w-full bg-slate-200/80 dark:bg-slate-600/80 font-semibold py-2 px-3 rounded-lg">Cancelar</button>
                 <button id="confirm-create-queue" class="w-full bg-indigo-500 text-white font-semibold py-2 px-3 rounded-lg">Criar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Logs Modal -->
+    <div id="logs-modal" class="hidden modal-overlay">
+        <div class="glass-effect p-6 rounded-2xl w-full max-w-lg space-y-4 fade-in-up h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center flex-shrink-0">
+                 <h3 class="text-lg font-bold">Histórico da Fila</h3>
+                 <button id="close-logs-modal" class="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">&times;</button>
+            </div>
+            <div id="logs-list" class="flex-grow overflow-y-auto space-y-2 pr-2">
+                <!-- Log items will be injected here -->
             </div>
         </div>
     </div>
@@ -280,7 +398,7 @@
         } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, onSnapshot, query, writeBatch, addDoc, serverTimestamp, getDocs, orderBy, limit, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         
-        // --- Configuração Firebase e Variáveis Globais ---
+        // --- Firebase Config and Global Variables ---
         const firebaseConfig = {
           apiKey: "AIzaSyDRf7ZciyvbJkX-P5cfWkzfI2Uw11Lxy0Q",
           authDomain: "filaonibus.firebaseapp.com",
@@ -302,14 +420,17 @@
         let currentUser = null;
         let userProfile = null;
         let currentQueueId = null;
-        const SUPER_ADMIN_UID = ["twqMzdcSPVT31cuQJKsE8HKxQBH3","fezXWTgqXUMCUBUKSBau6Sv4K9n2"]; // Manter o seu UID de super admin aqui
+        let currentQueueMembers = []; // Cache for current members
+        const SUPER_ADMIN_UID = ["twqMzdcSPVT31cuQJKsE8HKxQBH3","fezXWTgqXUMCUBUKSBau6Sv4K9n2"];
 
-        let unsubscribeQueue, unsubscribeChat;
+        let unsubscribeQueue, unsubscribeChat, unsubscribeSettings;
         let leaveConfirmationTimeout;
+        let buttonWasMoved = false;
         
         function cleanupRealtimeListeners() {
             if (unsubscribeQueue) unsubscribeQueue();
             if (unsubscribeChat) unsubscribeChat();
+            if (unsubscribeSettings) unsubscribeSettings();
         }
 
         function showToast(message, type = 'info') {
@@ -319,16 +440,33 @@
             setTimeout(() => { toast.className = toast.className.replace('show', ''); }, 3000);
         }
         
-        // --- Gestão de Ecrãs ---
+        // --- System Messaging ---
+        async function postSystemMessageToChat(text) {
+            if (!currentQueueId) return;
+            try {
+                await addDoc(collection(db, "queues", currentQueueId, "chat"), {
+                    text,
+                    type: 'system', // Differentiate from user messages
+                    timestamp: serverTimestamp()
+                });
+            } catch (error) {
+                console.error("Failed to post system message:", error);
+            }
+        }
+        
+        // --- Screen Management ---
         function showScreen(screen) {
             const screens = [authOverlay, profileOverlay, mainContent, bottomBar, queueSelectionScreen];
             screens.forEach(s => s.classList.add('hidden'));
-            authOverlay.style.display = 'none'; // reset flex display
+            authOverlay.style.display = 'none';
             profileOverlay.style.display = 'none';
 
-            if (screen === 'auth') authOverlay.style.display = 'flex';
-            else if (screen === 'profile') profileOverlay.style.display = 'block';
-            else if (screen === 'main') {
+            // Special handling for profile overlay to keep blobs visible
+            if (screen === 'profile') {
+                 profileOverlay.style.display = 'block';
+            } else if (screen === 'auth') {
+                authOverlay.style.display = 'flex';
+            } else if (screen === 'main') {
                 mainContent.classList.remove('hidden');
                 bottomBar.classList.remove('hidden');
             } else if (screen === 'queueSelection') {
@@ -336,7 +474,7 @@
             }
         }
         
-        // --- FLUXO DE AUTENTICAÇÃO E PERFIL ---
+        // --- AUTH & PROFILE FLOW ---
         onAuthStateChanged(auth, async (user) => {
             cleanupRealtimeListeners();
             currentQueueId = null;
@@ -369,7 +507,7 @@
                         } else {
                             openProfileScreen(true);
                         }
-                    } else { // Novo usuário
+                    } else { // New user
                          const profileData = { email: user.email, role: 'user' };
                          if (SUPER_ADMIN_UID.includes(user.uid)) {
                              profileData.role = 'superadmin';
@@ -384,8 +522,8 @@
                     showScreen('auth');
                 }
             } catch (error) {
-                console.error("Erro na verificação de autenticação:", error);
-                showToast("Erro ao verificar a sua sessão.", "error");
+                console.error("Error in auth state change:", error);
+                showToast("Error verifying your session.", "error");
                 showScreen('auth');
             } finally {
                 loadingSection.style.display = 'none';
@@ -459,14 +597,15 @@
             btn.disabled = true; btn.textContent = 'A guardar...';
             try {
                 const initial = userName.charAt(0).toUpperCase();
-                const color = ['fca5a5', 'fdba74', '86efac', '67e8f9', 'a5b4fc', 'f0abfc'][Math.floor(Math.random() * 6)];
+                const colors = ['fca5a5', 'fdba74', '86efac', '67e8f9', 'a5b4fc', 'f0abfc', 'f9a8d4', 'a7f3d0'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
                 const newPhotoUrl = `https://placehold.co/96x96/${color}/1e293b?text=${initial}&font=inter`;
 
                 const profileData = { 
                     name: userName, 
                     course: userCourse, 
                     phone: el('userPhone').value.trim(),
-                    photoUrl: newPhotoUrl
+                    photoUrl: userProfile.photoUrl || newPhotoUrl
                 };
 
                 await updateDoc(doc(db, "users", currentUser.uid), profileData);
@@ -491,14 +630,14 @@
                     renderQueueSelectionScreen();
                 }
             } catch (error) {
-                console.error("Erro ao guardar perfil:", error);
+                console.error("Error saving profile:", error);
                 showToast("Não foi possível guardar o perfil.", "error");
             } finally {
                 btn.disabled = false; btn.textContent = 'Guardar Alterações';
             }
         }
 
-        // --- GESTÃO DE FILAS (SELEÇÃO, CRIAÇÃO, JOIN) ---
+        // --- QUEUE MANAGEMENT (SELECTION, CREATE, JOIN) ---
         async function renderQueueSelectionScreen() {
              const listEl = el('queues-list');
              listEl.innerHTML = '<div class="text-center p-4">A carregar filas...</div>';
@@ -517,7 +656,7 @@
                 const queues = queueDocs.filter(d => d.exists()).map(d => ({id: d.id, ...d.data()}));
                 
                 listEl.innerHTML = queues.length > 0 ? queues.map(q => `
-                    <div data-queue-id="${q.id}" class="queue-card-selector bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700">
+                    <div data-queue-id="${q.id}" class="queue-card-selector glass-effect p-4 rounded-xl shadow-sm cursor-pointer hover:bg-slate-50/20 dark:hover:bg-slate-700/50">
                         <h3 class="font-bold text-lg">${q.name}</h3>
                         <p class="text-sm text-slate-500">Código: ${q.code}</p>
                     </div>
@@ -550,7 +689,7 @@
                 el('header-queue-name').textContent = queueData.name;
                 el('queue-code-display').textContent = queueData.code;
                 showScreen('main');
-                setupRealtimeListenersForQueue(queueId);
+                setupRealtimeListenersForQueue(queueId, queueData);
             } catch (error) {
                 showToast("Erro ao entrar na fila.", "error");
             }
@@ -618,21 +757,43 @@
             }
         }
 
-        // --- LÓGICA DA FILA (PRINCIPAL) ---
-        function setupRealtimeListenersForQueue(queueId) {
+        function randomButtonPos(){
+            const bottomBar = el('bottom-bar');
+            const baseClasses = "p-4 z-30";
+            bottomBar.className = `absolute ${baseClasses}`;
+            bottomBar.style.transition = 'top 0.5s ease, left 0.5s ease';
+
+            const barWidth = bottomBar.offsetWidth || 320; 
+            const barHeight = bottomBar.offsetHeight || 90;
+            const leftPos = Math.floor(Math.random() * (window.innerWidth - barWidth));
+            const topPos = Math.floor(Math.random() * (window.innerHeight - barHeight));
+
+            bottomBar.style.left = `${leftPos}px`;
+            bottomBar.style.top = `${topPos}px`;
+            buttonWasMoved = true;
+        }
+
+        // --- MAIN QUEUE LOGIC ---
+        function setupRealtimeListenersForQueue(queueId, initialQueueData) {
             if (!currentUser) return;
             cleanupRealtimeListeners();
             
             const membersRef = collection(db, "queues", queueId, "members");
             unsubscribeQueue = onSnapshot(query(membersRef, orderBy("timestamp")), async (snapshot) => {
                 const memberDocs = snapshot.docs;
-                renderQueue(memberDocs.map(d => ({ ...d.data(), uid: d.id })));
+                const queueMembers = memberDocs.map(d => ({ ...d.data(), uid: d.id }));
+                currentQueueMembers = [...queueMembers]; // Update cache
+                renderQueue(queueMembers);
             }, (error) => console.error("Error listening to queue members:", error));
             
-            const queueSettingsRef = doc(db, "queues", queueId);
-            onSnapshot(queueSettingsRef, (doc) => {
-                updateQueueStatusUI(doc.exists() ? doc.data() : null);
-            }, (error) => console.error("Error listening to queue settings:", error));
+            updateQueueStatusUI(initialQueueData);
+            
+            if (userProfile && userProfile.role === 'superadmin') {
+                const queueSettingsRef = doc(db, "queues", queueId);
+                unsubscribeSettings = onSnapshot(queueSettingsRef, (doc) => {
+                    updateQueueStatusUI(doc.exists() ? doc.data() : null);
+                }, (error) => console.error("Error listening to queue settings:", error));
+            }
 
             const chatRef = collection(db, "queues", queueId, "chat");
             unsubscribeChat = onSnapshot(query(chatRef, orderBy("timestamp", "desc"), limit(50)), (snapshot) => {
@@ -655,7 +816,7 @@
 
             if (!settings?.openTime || !settings?.closeTime) {
                 statusEl.textContent = "A fila ainda não foi agendada.";
-                card.className = "text-center p-4 rounded-2xl bg-slate-200 dark:bg-slate-800";
+                card.className = "text-center p-4 rounded-2xl bg-slate-200 dark:bg-slate-800 transition-all duration-500";
                 return;
             }
             
@@ -673,14 +834,13 @@
 
             if (now < openTime) {
                 statusEl.textContent = `Fila fechada. Abrirá às ${formatTime(openTime)}.`;
-                buttonWasMoved = false;
-                card.className = "text-center p-4 rounded-2xl bg-sky-100 dark:bg-sky-900/50 text-sky-800 dark:text-sky-200";
+                card.className = "text-center p-4 rounded-2xl glass-effect bg-sky-400/20 text-sky-800 dark:text-sky-200 transition-all duration-500";
             } else if (now >= openTime && now < closeTime) {
                 statusEl.textContent = `Fila aberta! Fecha às ${formatTime(closeTime)}.`;
-                card.className = "text-center p-4 rounded-2xl bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200";
+                card.className = "text-center p-4 rounded-2xl glass-effect bg-green-400/20 text-green-800 dark:text-green-200 transition-all duration-500";
             } else { 
                 statusEl.textContent = "A fila foi encerrada.";
-                card.className = "text-center p-4 rounded-2xl bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-200";
+                card.className = "text-center p-4 rounded-2xl glass-effect bg-red-400/20 text-red-800 dark:text-red-200 transition-all duration-500";
             }
         }
         
@@ -713,6 +873,7 @@
             try {
                 const { name, course, photoUrl, uid } = userProfile;
                 await setDoc(userQueueRef, { name, course, photoUrl, uid, timestamp: Timestamp.now(), observation: "" });
+                await postSystemMessageToChat(`${name} entrou na fila.`);
             } catch(error) {
                 console.error(error);
                 showToast("Não foi possível entrar na fila.", "error");
@@ -727,59 +888,71 @@
                 clearTimeout(leaveConfirmationTimeout);
                 try {
                     await deleteDoc(userQueueRef);
+                    await postSystemMessageToChat(`${userProfile.name} saiu da fila.`);
                     delete leaveBtn.dataset.confirming;
+                    buttonWasMoved = false;
                 } catch (error) { showToast("Erro ao sair da fila.", "error"); }
             } else {
                 leaveBtn.dataset.confirming = 'true';
                 leaveBtn.textContent = "Certeza?";
-                leaveBtn.className = `bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-xl transition-all text-sm`;
+                leaveBtn.className = `bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-xl text-sm`;
                 leaveConfirmationTimeout = setTimeout(() => {
                     delete leaveBtn.dataset.confirming;
                     leaveBtn.textContent = "Sair";
-                    leaveBtn.className = "bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl transition-all text-sm";
+                    leaveBtn.className = "bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl text-sm";
                 }, 4000);
             }
         }
-
-        let buttonWasMoved = false;
 
         async function renderQueue(queue) {
             const isOpen = await queueIsOpen();
             const joinBtn = el('join-leave-btn');
             const leaveBtn = el('header-leave-queue-btn');
+            const bottomBar = el('bottom-bar');
             const userIndex = queue.findIndex(p => p.uid === currentUser.uid);
             const isInQueue = userIndex !== -1;
+            const baseBottomBarClasses = "p-4 z-30";
 
             el('total-in-queue').textContent = queue.length;
             el('user-position').textContent = isInQueue ? userIndex + 1 : "-";
-            el('users-next').textContent = isInQueue ? (userIndex > 0 ? `Atrás de: ${queue[userIndex - 1].name.split(" ")[0]}` : "Você é o primeiro!") : '-';
+            el('users-next').textContent = isInQueue ? (userIndex > 0 ? `Atrás de: ${queue[userIndex - 1].name.split(" ")[0]}` : "Você é o primeiro!") : '';
 
             if (isInQueue) {
-                joinBtn.classList.add('hidden');
+                bottomBar.classList.add('hidden');
                 leaveBtn.classList.remove('hidden');
                 if (leaveBtn.dataset.confirming !== 'true') {
                      leaveBtn.textContent = "Sair";
-                     leaveBtn.className = "bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl transition-all text-sm";
+                     leaveBtn.className = "bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded-xl text-sm";
                 }
                 leaveBtn.onclick = handleLeaveQueue;
             } else {
+                bottomBar.classList.remove('hidden');
                 joinBtn.classList.remove('hidden');
                 leaveBtn.classList.add('hidden');
-                joinBtn.textContent = "Entrar na Fila";
-                joinBtn.className = `w-full font-bold py-4 px-4 rounded-2xl transition-all bg-slate-800 dark:bg-white text-white dark:text-black`;
-                joinBtn.disabled = !isOpen;
-                if(isOpen && !buttonWasMoved) {
-                    randomButtonPos();
+                
+                if (isOpen) {
+                    joinBtn.textContent = "Entrar na Fila";
+                    joinBtn.className = `glass-effect font-bold py-3 px-6 rounded-2xl text-slate-900 dark:text-white`;
+                    joinBtn.disabled = false;
+                    joinBtn.onclick = handleJoinQueue;
+                    if(!buttonWasMoved) {
+                        randomButtonPos();
+                    }
+                } else {
+                    buttonWasMoved = false;
+                    bottomBar.className = `fixed bottom-0 left-0 right-0 ${baseBottomBarClasses}`;
+                    bottomBar.style.top = '';
+                    bottomBar.style.left = '';
+                    joinBtn.textContent = "Fila Fechada";
+                    joinBtn.disabled = true;
                 }
-                if(joinBtn.disabled) joinBtn.textContent = "Fila Fechada";
-                joinBtn.onclick = handleJoinQueue;
             }
 
             el('queue-list').innerHTML = queue.length === 0 
                 ? `<div class="text-center text-slate-500 py-8">A fila está vazia.</div>`
                 : queue.map((p, i) => {
                     const isMe = p.uid === currentUser.uid;
-                    const border = isMe ? 'border-4 border-violet-500' : 'border-4 border-transparent';
+                    const border = isMe ? 'border-2 border-violet-500 shadow-lg' : 'border-2 border-transparent';
                     const obsHTML = p.observation ? `<p class="text-xs text-slate-500 mt-1 italic">💬 "${p.observation}"</p>` : '';
                     
                     let adminControlsHTML = '';
@@ -794,8 +967,8 @@
                         </div>`;
                     }
 
-                    return `<div class="bg-white dark:bg-slate-800 p-3 rounded-2xl flex items-center gap-4 shadow-sm ${border}">
-                        <div class="bg-slate-200 dark:bg-slate-700 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg flex-shrink-0">${i + 1}</div>
+                    return `<div class="glass-effect p-3 rounded-2xl flex items-center gap-4 shadow-sm ${border}">
+                        <div class="bg-slate-200/80 dark:bg-slate-700/80 w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg flex-shrink-0">${i + 1}</div>
                         <img src="${p.photoUrl}" class="w-12 h-12 rounded-full object-cover flex-shrink-0">
                         <div class="flex-grow min-w-0">
                             <p class="font-semibold truncate">${p.name}</p>
@@ -811,18 +984,23 @@
             
             // Re-attach event listeners
             document.querySelectorAll('.delete-queue-btn').forEach(b => b.addEventListener('click', (e) => handleDeleteFromQueue(e.currentTarget)));
-            document.querySelectorAll('.move-queue-btn').forEach(b => b.addEventListener('click', () => handleMoveInQueue(b.dataset.uid, b.dataset.direction, queue)));
+            document.querySelectorAll('.move-queue-btn').forEach(b => b.addEventListener('click', () => handleMoveInQueue(b.dataset.uid, b.dataset.direction)));
         }
 
-        // --- AÇÕES DE SUPER ADMIN E OUTROS ---
+        // --- SUPER ADMIN ACTIONS & OTHERS ---
         let deleteConfirmationTimeouts = {};
         async function handleDeleteFromQueue(button) {
             const uid = button.dataset.uid;
+            const userToRemove = currentQueueMembers.find(u => u.uid === uid);
+
             if (button.dataset.confirming) {
                 clearTimeout(deleteConfirmationTimeouts[uid]);
                 delete deleteConfirmationTimeouts[uid];
                 try {
                     await deleteDoc(doc(db, "queues", currentQueueId, "members", uid));
+                    if(userToRemove) {
+                       await postSystemMessageToChat(`Admin (${userProfile.name.split(' ')[0]}) removeu ${userToRemove.name} da fila.`);
+                    }
                     showToast("Usuário removido da fila.", "info");
                 } catch (error) { showToast("Erro ao remover usuário.", "error"); }
             } else {
@@ -841,7 +1019,8 @@
             }
         }
 
-        async function handleMoveInQueue(uid, direction, queue) {
+        async function handleMoveInQueue(uid, direction) {
+            const queue = [...currentQueueMembers];
             const userIndex = queue.findIndex(u => u.uid === uid);
             if (userIndex === -1) return;
             let swapIndex;
@@ -855,7 +1034,11 @@
             const batch = writeBatch(db);
             batch.update(doc(db, "queues", currentQueueId, "members", userToMove.uid), { timestamp: userToSwapWith.timestamp });
             batch.update(doc(db, "queues", currentQueueId, "members", userToSwapWith.uid), { timestamp: userToMove.timestamp });
-            try { await batch.commit(); showToast("Usuário movido.", "info"); } 
+            try { 
+                await batch.commit();
+                await postSystemMessageToChat(`Admin (${userProfile.name.split(' ')[0]}) moveu ${userToMove.name} da posição ${userIndex + 1} para ${swapIndex + 1}.`);
+                showToast("Usuário movido.", "info"); 
+            } 
             catch(error) { showToast("Erro ao mover usuário.", "error"); }
         }
         
@@ -876,7 +1059,13 @@
             if (text) {
                 input.value = '';
                 try {
-                    await addDoc(collection(db, "queues", currentQueueId, "chat"), { text, userName: userProfile.name, userPhotoUrl: userProfile.photoUrl, uid: currentUser.uid, timestamp: serverTimestamp() });
+                    await addDoc(collection(db, "queues", currentQueueId, "chat"), { 
+                        text, 
+                        userName: userProfile.name, 
+                        userPhotoUrl: userProfile.photoUrl, 
+                        uid: currentUser.uid, 
+                        timestamp: serverTimestamp() 
+                    });
                 } catch (error) { input.value = text; showToast("Não foi possível enviar a mensagem.", "error"); }
             }
         }
@@ -884,6 +1073,9 @@
         function renderChat(messages) {
             const chatEl = el('chat-messages');
             chatEl.innerHTML = messages.map(msg => {
+                // System messages are handled in the logs modal
+                if(msg.type === 'system') return '';
+
                 const isMe = msg.uid === currentUser.uid;
                 const time = msg.timestamp ? msg.timestamp.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
                 return `
@@ -908,7 +1100,63 @@
             catch (error) { showToast("Não foi possível guardar a observação.", "error"); }
         }
 
-        // --- SETUP DE EVENTOS ---
+        async function showLogsModal() {
+            const logsListEl = el('logs-list');
+            logsListEl.innerHTML = '<p>A carregar histórico...</p>';
+            el('logs-modal').classList.remove('hidden');
+
+            try {
+                const q = query(collection(db, "queues", currentQueueId, "chat"), orderBy("timestamp", "desc"), limit(200));
+                const querySnapshot = await getDocs(q);
+                const logs = querySnapshot.docs.map(d => d.data());
+                renderLogs(logs.reverse());
+            } catch (error) {
+                console.error("Error fetching logs:", error);
+                logsListEl.innerHTML = '<p class="text-red-500">Não foi possível carregar o histórico.</p>';
+            }
+        }
+
+        function renderLogs(logs) {
+            const logsListEl = el('logs-list');
+            if (logs.length === 0) {
+                logsListEl.innerHTML = '<p class="text-slate-500 text-center">Nenhuma atividade registada.</p>';
+                return;
+            }
+
+            logsListEl.innerHTML = logs.map(log => {
+                const time = log.timestamp ? log.timestamp.toDate().toLocaleString('pt-BR') : '';
+
+                if (log.type === 'system') {
+                    return `
+                        <div class="text-sm p-2 rounded-lg bg-slate-500/10 flex items-start gap-3">
+                            <span class="mt-1">⚙️</span>
+                            <div>
+                                <p class="font-medium italic text-slate-600 dark:text-slate-300">${log.text}</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">${time}</p>
+                            </div>
+                        </div>`;
+                }
+                
+                // Regular chat message
+                const isMe = log.uid === currentUser.uid;
+                return `
+                    <div class="flex items-start gap-2.5 ${isMe ? 'justify-end' : ''}">
+                        <img class="w-8 h-8 rounded-full object-cover ${isMe ? 'order-2' : 'order-1'}" src="${log.userPhotoUrl}" alt="${log.userName}">
+                        <div class="flex flex-col gap-1 ${isMe ? 'order-1 items-end' : 'order-2 items-start'}">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs font-semibold text-slate-900 dark:text-white">${isMe ? 'Você' : log.userName.split(' ')[0]}</span>
+                                <span class="text-xs font-normal text-slate-500 dark:text-slate-400">${time}</span>
+                            </div>
+                            <div class="leading-snug p-3 rounded-xl ${isMe ? 'bg-indigo-500 text-white rounded-br-none' : 'bg-slate-200 dark:bg-slate-700 rounded-bl-none'}">
+                                <p class="text-sm font-normal">${log.text}</p>
+                            </div>
+                        </div>
+                    </div>`;
+            }).join('');
+             logsListEl.scrollTop = logsListEl.scrollHeight;
+        }
+
+        // --- EVENT LISTENERS SETUP ---
         function setupEventListeners() {
             el('login-btn').addEventListener('click', handleLogin);
             el('register-btn').addEventListener('click', handleRegister);
@@ -927,7 +1175,8 @@
                 currentQueueId = null; 
                 cleanupRealtimeListeners(); 
                 showScreen('queueSelection'); 
-                renderQueueSelectionScreen(); 
+                renderQueueSelectionScreen();
+                buttonWasMoved = false; 
             };
             el('cancel-join-queue').onclick = () => el('join-queue-modal').classList.add('hidden');
             el('confirm-join-queue').onclick = handleJoinQueueWithCode;
@@ -938,6 +1187,9 @@
             el('share-location-btn').addEventListener('click', handleShareLocation);
             el('save-schedule-btn').addEventListener('click', () => updateDoc(doc(db, "queues", currentQueueId), { openTime: el('queueOpenTime').value, closeTime: el('queueCloseTime').value }).then(() => showToast("Agendamento guardado!", "info")));
             
+            el('view-logs-btn').addEventListener('click', showLogsModal);
+            el('close-logs-modal').addEventListener('click', () => el('logs-modal').classList.add('hidden'));
+
             const addConfirmation = (buttonId, actionFn, successMsg) => {
                 const btn = el(buttonId);
                 let timeout;
@@ -967,15 +1219,17 @@
                 const batch = writeBatch(db);
                 snapshot.docs.forEach(d => batch.delete(d.ref));
                 await batch.commit();
+                await postSystemMessageToChat(`Admin (${userProfile.name.split(' ')[0]}) reiniciou a fila.`);
             }, "Fila reiniciada.");
             addConfirmation('clear-chat-btn', async () => {
                 const snapshot = await getDocs(query(collection(db, "queues", currentQueueId, "chat")));
                 const batch = writeBatch(db);
                 snapshot.docs.forEach(d => batch.delete(d.ref));
                 await batch.commit();
+                await postSystemMessageToChat(`Admin (${userProfile.name.split(' ')[0]}) limpou o chat.`);
             }, "Chat limpo.");
 
-            // Tabs de Autenticação
+            // Auth Tabs
             const showLoginTab = el('show-login-tab'), showRegisterTab = el('show-register-tab');
             const loginForm = el('login-form'), registerForm = el('register-form'), resetForm = el('password-reset-form'), authTabs = el('auth-tabs');
             const setActiveTab = (activeTab) => {
@@ -1002,19 +1256,12 @@
             el('back-to-login-btn').addEventListener('click', () => setActiveTab('login'));
         }
         
-        // --- INICIALIZAÇÃO ---
+        // --- INITIALIZATION ---
         if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) document.documentElement.classList.add('dark');
         window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener('change', e => document.documentElement.classList.toggle('dark', e.matches));
         setupEventListeners();
-
-        function randomButtonPos(){
-            const bottomBar = el('bottom-bar');
-            const leftPos = Math.floor(Math.random() * (window.innerWidth-50));
-            const topPos = Math.floor(Math.random() * (window.innerHeight - 40));
-            bottomBar.className = `absolute left-[${leftPos}px] top-[${topPos}px]`;
-            buttonWasMoved = true;
-        }
     </script>
 </body>
 </html>
+
 
