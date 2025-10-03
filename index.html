@@ -6,7 +6,7 @@
     <title>Fila Virtual (Online)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="icon" href="https://placehold.co/32x32/818cf8/ffffff?text=Q&font=inter">
     <style>
@@ -118,6 +118,44 @@
             border-color: rgba(255, 255, 255, 0.08);
             box-shadow: 0 8px 32px 0 rgba(2, 6, 23, 0.3);
         }
+        
+        /* --- Eye-catching Join Button --- */
+        .join-button-active {
+            background: linear-gradient(45deg, #f97316, #f59e0b, #ea580c, #f97316);
+            background-size: 400% 400%;
+            animation: gradient-animation 8s ease infinite, pulse-animation 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+            color: white;
+            font-size: 1.125rem; /* text-lg */
+            padding: 1rem 1.5rem; /* py-4 px-6 */
+            box-shadow: 0 10px 20px -5px rgba(249, 115, 22, 0.5);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            transform: scale(1.05); /* Start slightly larger */
+        }
+
+        .join-button-active:hover {
+            animation-play-state: paused, running; /* Pause gradient, keep pulsing */
+            filter: brightness(1.15);
+            transform: translateY(-3px) scale(1.08) !important; /* Override the default hover */
+            box-shadow: 0 15px 25px -5px rgba(249, 115, 22, 0.6);
+        }
+
+        @keyframes gradient-animation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes pulse-animation {
+            0%, 100% {
+                transform: scale(1.05);
+                box-shadow: 0 10px 20px -5px rgba(249, 115, 22, 0.5);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 15px 30px -5px rgba(251, 146, 60, 0.6);
+            }
+        }
 
         /* --- Component Styling --- */
         ::-webkit-scrollbar { width: 4px; }
@@ -225,9 +263,8 @@
         </div>
 
         <!-- Ecrã de Completar/Editar Perfil -->
-        <div id="profile-overlay" class="hidden fixed inset-0 z-50 p-4 overflow-y-auto">
-            <div class="w-full max-w-md mx-auto space-y-6 fade-in-up pt-10">
-                <div class="absolute inset-0 bg-slate-100 dark:bg-slate-900 -z-10"></div>
+        <div id="profile-overlay" class="hidden fixed inset-0 z-50 p-4 flex items-center justify-center">
+            <div class="w-full max-w-md mx-auto glass-effect rounded-3xl p-6 shadow-2xl space-y-4 fade-in-up">
                 <div class="flex justify-between items-center">
                     <h2 id="profile-title" class="text-2xl font-bold text-slate-900 dark:text-white"></h2>
                     <button id="close-profile-btn" class="text-slate-500 hover:text-slate-800 dark:hover:text-slate-200">
@@ -235,14 +272,19 @@
                     </button>
                 </div>
 
-                <div class="flex flex-col items-center space-y-4">
+                <div class="flex justify-center">
                     <img id="profile-pic-preview" class="w-32 h-32 rounded-full object-cover border-4 border-slate-200 dark:border-slate-700">
                 </div>
 
-                <input type="text" id="userName" placeholder="Nome Completo" class="w-full bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 px-4">
-                <input type="text" id="userCourse" placeholder="Curso" class="w-full bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 px-4">
-                <input type="tel" id="userPhone" placeholder="Telemóvel (Opcional)" class="w-full bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl py-3 px-4">
-                <button id="save-profile-btn" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl">Guardar Alterações</button>
+                <div class="space-y-4">
+                    <input type="text" id="userName" placeholder="Nome Completo" class="w-full bg-slate-100/50 text-slate-900 dark:bg-slate-700/50 dark:text-white border-transparent rounded-xl py-3 px-4">
+                    <input type="text" id="userCourse" placeholder="Curso" class="w-full bg-slate-100/50 text-slate-900 dark:bg-slate-700/50 dark:text-white border-transparent rounded-xl py-3 px-4">
+                    <input type="tel" id="userPhone" placeholder="Telemóvel (Opcional)" class="w-full bg-slate-100/50 text-slate-900 dark:bg-slate-700/50 dark:text-white border-transparent rounded-xl py-3 px-4">
+                </div>
+
+                <div class="pt-2">
+                    <button id="save-profile-btn" class="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl">Guardar Alterações</button>
+                </div>
             </div>
         </div>
         
@@ -262,9 +304,9 @@
             <header class="flex justify-between items-center">
                 <div>
                      <button id="back-to-selection-btn" class="flex items-center gap-1 text-sm text-slate-500 hover:text-indigo-500 mb-1">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                        Voltar
-                    </button>
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                         Voltar
+                     </button>
                     <h1 id="header-queue-name" class="text-2xl font-bold text-slate-900 dark:text-white">Nome da Fila</h1>
                 </div>
                 <div class="flex items-center gap-3">
@@ -458,14 +500,11 @@
         function showScreen(screen) {
             const screens = [authOverlay, profileOverlay, mainContent, bottomBar, queueSelectionScreen];
             screens.forEach(s => s.classList.add('hidden'));
-            authOverlay.style.display = 'none';
-            profileOverlay.style.display = 'none';
 
-            // Special handling for profile overlay to keep blobs visible
             if (screen === 'profile') {
-                 profileOverlay.style.display = 'block';
+                profileOverlay.classList.remove('hidden');
             } else if (screen === 'auth') {
-                authOverlay.style.display = 'flex';
+                authOverlay.classList.remove('hidden');
             } else if (screen === 'main') {
                 mainContent.classList.remove('hidden');
                 bottomBar.classList.remove('hidden');
@@ -666,8 +705,8 @@
                     card.addEventListener('click', () => enterQueue(card.dataset.queueId));
                 });
              } catch(error) {
-                console.error("Error loading queues:", error);
-                listEl.innerHTML = '<div class="text-center text-red-500 p-4">Não foi possível carregar as filas.</div>';
+                 console.error("Error loading queues:", error);
+                 listEl.innerHTML = '<div class="text-center text-red-500 p-4">Não foi possível carregar as filas.</div>';
              }
         }
         
@@ -932,7 +971,7 @@
                 
                 if (isOpen) {
                     joinBtn.textContent = "Entrar na Fila";
-                    joinBtn.className = `glass-effect font-bold py-3 px-6 rounded-2xl text-slate-900 dark:text-white`;
+                    joinBtn.className = 'join-button-active font-bold rounded-2xl duration-300';
                     joinBtn.disabled = false;
                     joinBtn.onclick = handleJoinQueue;
                     if(!buttonWasMoved) {
@@ -944,6 +983,7 @@
                     bottomBar.style.top = '';
                     bottomBar.style.left = '';
                     joinBtn.textContent = "Fila Fechada";
+                    joinBtn.className = 'font-bold py-3 px-6 rounded-2xl duration-300';
                     joinBtn.disabled = true;
                 }
             }
@@ -1263,5 +1303,4 @@
     </script>
 </body>
 </html>
-
 
