@@ -384,7 +384,7 @@
             </div>
 
              <footer class="text-center text-xs text-slate-500 dark:text-slate-400 pt-8">
-                <p>Desenvolvido por Kleison Vitoriano da Silva e Jonas Derrotano da Silva</p>
+                <p>Desenvolvido por Kleison Vitoriano da Silva e Jonas Derrotano da Silva Cavalcanti</p>
             </footer>
         </div>
 
@@ -911,7 +911,7 @@
             const userQueueRef = doc(db, "queues", currentQueueId, "members", currentUser.uid);
             try {
                 const { name, course, photoUrl, uid } = userProfile;
-                await setDoc(userQueueRef, { name, course, photoUrl, uid, timestamp: Timestamp.now(), observation: "" });
+                await setDoc(userQueueRef, { name, course, photoUrl, uid, timestamp: serverTimestamp(), observation: "" });
                 await postSystemMessageToChat(`${name} entrou na fila.`);
             } catch(error) {
                 console.error(error);
@@ -1253,7 +1253,7 @@
                     }
                 });
             };
-            
+
             addConfirmation('restart-queue-btn', async () => {
                 const snapshot = await getDocs(query(collection(db, "queues", currentQueueId, "members")));
                 const batch = writeBatch(db);
